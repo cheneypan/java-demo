@@ -69,5 +69,27 @@ public class HelloWorldServer {
             responseObserver.onNext(reply);
             responseObserver.onCompleted();
         }
+
+        public StreamObserver<HelloRequest> chat(StreamObserver<HelloReply> responseObserver){
+            return new StreamObserver<HelloRequest>() {
+                @Override
+                public void onNext(HelloRequest req) {
+                    System.out.println("service:"+req.getName());
+                    HelloReply reply = HelloReply.newBuilder().setMessage(("Hello: " + req.getName())).build();
+                    responseObserver.onNext(reply);
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    t.printStackTrace();
+                    System.err.println("Encountered error in routeChat");
+                }
+
+                @Override
+                public void onCompleted() {
+                    responseObserver.onCompleted();
+                }
+            };
+        }
     }
 }
