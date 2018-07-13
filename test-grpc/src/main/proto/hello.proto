@@ -9,6 +9,8 @@ service Greeter {
     //服务端接口方法
     rpc SayHello (HelloRequest) returns (HelloReply) {}
 
+    rpc SingleStream (HelloRequest) returns (stream HelloReply){}
+
     rpc Chat (stream HelloRequest) returns (stream HelloReply){}
 }
 

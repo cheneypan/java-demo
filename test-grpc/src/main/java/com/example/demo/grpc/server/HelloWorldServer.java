@@ -6,13 +6,19 @@ import com.example.demo.grpc.hello.HelloRequest;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 /**
+ * gRPC学习记录(四)--官方Demo
+ * https://www.jianshu.com/p/39c9eedba2c2
  * Created by cheney on 2018/7/13.
  */
 public class HelloWorldServer {
+
+    Logger logger = LoggerFactory.getLogger(getClass());
 
     private int port = 50051;
     private Server server;
@@ -23,14 +29,14 @@ public class HelloWorldServer {
                 .build()
                 .start();
 
-        System.out.println("service start...");
+        logger.info("service start ... ...");
 
         Runtime.getRuntime().addShutdownHook(new Thread() {
 
             @Override
             public void run() {
 
-                System.err.println("*** shutting down gRPC server since JVM is shutting down");
+                logger.info("*** shutting down gRPC server since JVM is shutting down");
                 HelloWorldServer.this.stop();
                 System.err.println("*** server shut down");
             }
@@ -64,9 +70,23 @@ public class HelloWorldServer {
 
 
         public void sayHello(HelloRequest req, StreamObserver<HelloReply> responseObserver) {
-            System.out.println("service:"+req.getName());
+            logger.info("service:"+req.getName());
             HelloReply reply = HelloReply.newBuilder().setMessage(("Hello: " + req.getName())).build();
             responseObserver.onNext(reply);
+            responseObserver.onCompleted();
+        }
+
+        public void singleStream(HelloRequest req, StreamObserver<HelloReply> responseObserver){
+            logger.info("service:" + req.getName());
+            for(int i=0; i<10; i++){
+                String message = "Hello: " + req.getName() + "_" + i;
+                HelloReply reply = HelloReply.newBuilder().setMessage(message).build();
+                responseObserver.onNext(reply);
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                }
+            }
             responseObserver.onCompleted();
         }
 
@@ -74,7 +94,7 @@ public class HelloWorldServer {
             return new StreamObserver<HelloRequest>() {
                 @Override
                 public void onNext(HelloRequest req) {
-                    System.out.println("service:"+req.getName());
+                    logger.info("service:"+req.getName());
                     HelloReply reply = HelloReply.newBuilder().setMessage(("Hello: " + req.getName())).build();
                     responseObserver.onNext(reply);
                 }
@@ -82,7 +102,7 @@ public class HelloWorldServer {
                 @Override
                 public void onError(Throwable t) {
                     t.printStackTrace();
-                    System.err.println("Encountered error in routeChat");
+                    logger.error("Encountered error in routeChat");
                 }
 
                 @Override

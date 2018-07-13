@@ -6,7 +6,10 @@ import com.example.demo.grpc.hello.HelloRequest;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.stub.StreamObserver;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.util.Iterator;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -15,6 +18,9 @@ import java.util.concurrent.TimeUnit;
  * Created by cheney on 2018/7/13.
  */
 public class HelloWorldClient {
+
+    Logger logger = LoggerFactory.getLogger(getClass());
+
     private final ManagedChannel channel;
     private final GreeterGrpc.GreeterBlockingStub blockingStub;
 
@@ -35,7 +41,15 @@ public class HelloWorldClient {
     public  void greet(String name){
         HelloRequest request = HelloRequest.newBuilder().setName(name).build();
         HelloReply response = blockingStub.sayHello(request);
-        System.out.println(response.getMessage());
+        logger.info(response.getMessage());
+    }
+
+    public void singleStream(){
+        Iterator<HelloReply> iterator = blockingStub.singleStream(HelloRequest.newBuilder().setName("cheney").setSex("1").build());
+        for(Iterator<HelloReply> iterator2 = iterator ; iterator.hasNext();){
+            HelloReply helloReply = iterator2.next();
+            logger.info("Get Reploy >>> " + helloReply.getMessage());
+        }
     }
 
     public void chat(){
@@ -44,24 +58,24 @@ public class HelloWorldClient {
         StreamObserver<HelloRequest> requestStreamObserver = stub.chat(new StreamObserver<HelloReply>(){
             @Override
             public void onNext(HelloReply helloReply) {
-                System.out.println("Reply >>> " + helloReply.getMessage());
+                logger.info("Reply >>> " + helloReply.getMessage());
             }
 
             @Override
             public void onError(Throwable throwable) {
-                System.out.println("error: " + throwable.getMessage());
+                logger.info("error: " + throwable.getMessage());
                 finishLatch.countDown();
             }
 
             @Override
             public void onCompleted() {
-                System.out.println("Completed ...");
+                logger.info("Completed ...");
                 finishLatch.countDown();
             }
         });
         Random random = new Random();
         for(int i=0; i<6; i++){
-            System.out.println("index >>> " + i);
+            logger.info("index >>> " + i);
             requestStreamObserver.onNext(HelloRequest.newBuilder().setName("name_" + i).setSex("" + i).build());
             try {
                 Thread.sleep(random.nextInt(1000) + 500);
@@ -81,7 +95,8 @@ public class HelloWorldClient {
 //        for(int i=0;i<5;i++){
 //            client.greet("world:"+i);
 //        }
-        client.chat();
+//        client.chat();
+        client.singleStream();
         client.shutdown();
     }
 }
