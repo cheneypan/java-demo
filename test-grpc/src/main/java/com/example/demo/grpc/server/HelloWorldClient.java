@@ -3,8 +3,10 @@ package com.example.demo.grpc.server;
 import com.example.demo.grpc.hello.GreeterGrpc;
 import com.example.demo.grpc.hello.HelloReply;
 import com.example.demo.grpc.hello.HelloRequest;
+import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,11 +46,28 @@ public class HelloWorldClient {
         logger.info(response.getMessage());
     }
 
-    public void singleStream(){
-        Iterator<HelloReply> iterator = blockingStub.singleStream(HelloRequest.newBuilder().setName("cheney").setSex("1").build());
-        for(Iterator<HelloReply> iterator2 = iterator ; iterator.hasNext();){
-            HelloReply helloReply = iterator2.next();
-            logger.info("Get Reploy >>> " + helloReply.getMessage());
+    public void singleStream(String name) {
+        Context.CancellableContext withCancellation = Context.current().withCancellation();
+        try {
+            withCancellation.run(() -> {
+                while (!Context.current().isCancelled()) {
+                    int count = 0;
+                    Iterator<HelloReply> iterator = blockingStub.singleStream(HelloRequest.newBuilder().setName(name).setSex("1").build());
+                    for (Iterator<HelloReply> iterator2 = iterator; iterator.hasNext(); ) {
+                        HelloReply helloReply = iterator2.next();
+                        logger.info("Get Reploy >>> " + helloReply.getMessage());
+                        count++;
+                        if (count >= 5) {
+                            logger.info(">>>>>> out ....");
+                            withCancellation.cancel(Status.CANCELLED.asException());
+                            break;
+                        }
+                    }
+                }
+            });
+            logger.info("end ... ...");
+        } catch (Throwable t) {
+            withCancellation.cancel(t);
         }
     }
 
@@ -96,7 +115,8 @@ public class HelloWorldClient {
 //            client.greet("world:"+i);
 //        }
 //        client.chat();
-        client.singleStream();
+        client.singleStream("cheney");
+        client.singleStream("drolly");
         client.shutdown();
     }
 }

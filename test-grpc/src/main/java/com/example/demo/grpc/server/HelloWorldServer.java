@@ -3,6 +3,7 @@ package com.example.demo.grpc.server;
 import com.example.demo.grpc.hello.GreeterGrpc;
 import com.example.demo.grpc.hello.HelloReply;
 import com.example.demo.grpc.hello.HelloRequest;
+import io.grpc.Context;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
@@ -58,7 +59,6 @@ public class HelloWorldServer {
 
 
     public static void main(String[] args) throws IOException, InterruptedException {
-
         final HelloWorldServer server = new HelloWorldServer();
         server.start();
         server.blockUntilShutdown();
@@ -78,16 +78,21 @@ public class HelloWorldServer {
 
         public void singleStream(HelloRequest req, StreamObserver<HelloReply> responseObserver){
             logger.info("service:" + req.getName());
-            for(int i=0; i<10; i++){
-                String message = "Hello: " + req.getName() + "_" + i;
+            for(int i=0; ; i++){
+                if(Context.current().isCancelled()){
+                    logger.info("context current is cancelled .");
+                    break;
+                }
+                String message = Context.current().isCancelled() +  " > Hello: " + req.getName() + "_" + i;
                 HelloReply reply = HelloReply.newBuilder().setMessage(message).build();
                 responseObserver.onNext(reply);
+                logger.info("reply: " + message);
                 try {
                     Thread.sleep(500);
                 } catch (InterruptedException e) {
                 }
             }
-            responseObserver.onCompleted();
+//            responseObserver.onCompleted();
         }
 
         public StreamObserver<HelloRequest> chat(StreamObserver<HelloReply> responseObserver){
