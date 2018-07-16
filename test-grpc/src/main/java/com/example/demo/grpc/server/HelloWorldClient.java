@@ -37,7 +37,9 @@ public class HelloWorldClient {
 
 
     public void shutdown() throws InterruptedException {
+//        Thread.sleep(1000);
         channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+        logger.info("exit ... ...");
     }
 
     public  void greet(String name){
@@ -112,11 +114,11 @@ public class HelloWorldClient {
     public static void main(String[] args) throws InterruptedException {
         HelloWorldClient client = new HelloWorldClient("127.0.0.1",50051);
 //        for(int i=0;i<5;i++){
-//            client.greet("world:"+i);
+//            client.greet("world_"+i);
 //        }
-//        client.chat();
         client.singleStream("cheney");
         client.singleStream("drolly");
+//        client.chat();
         client.shutdown();
     }
 }
