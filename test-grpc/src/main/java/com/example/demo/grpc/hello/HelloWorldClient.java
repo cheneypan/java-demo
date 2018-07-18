@@ -1,8 +1,5 @@
-package com.example.demo.grpc.server;
+package com.example.demo.grpc.hello;
 
-import com.example.demo.grpc.hello.GreeterGrpc;
-import com.example.demo.grpc.hello.HelloReply;
-import com.example.demo.grpc.hello.HelloRequest;
 import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;

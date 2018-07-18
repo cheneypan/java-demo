@@ -1,0 +1,12 @@
+server:
+  port: 8080
+
+grpc:
+  pool:
+    max-active: 2
+    max-idle: 1
+    max-total: 2
+  service:
+    hello:
+      host: 127.0.0.1
+      port: 50051

@@ -1,8 +1,5 @@
-package com.example.demo.grpc.server;
+package com.example.demo.grpc.hello;
 
-import com.example.demo.grpc.hello.GreeterGrpc;
-import com.example.demo.grpc.hello.HelloReply;
-import com.example.demo.grpc.hello.HelloRequest;
 import io.grpc.Context;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -37,9 +34,9 @@ public class HelloWorldServer {
             @Override
             public void run() {
 
-                logger.info("*** shutting down gRPC server since JVM is shutting down");
+                logger.info("*** shutting down gRPC hello since JVM is shutting down");
                 HelloWorldServer.this.stop();
-                System.err.println("*** server shut down");
+                System.err.println("*** hello shut down");
             }
         });
     }
@@ -80,7 +77,7 @@ public class HelloWorldServer {
             logger.info("service:" + req.getName());
             for(int i=0; ; i++){
                 if(Context.current().isCancelled()){
-                    logger.info("context current is cancelled .");
+                    logger.info("[name={}]context current is cancelled .", req.getName());
                     break;
                 }
                 String message = Context.current().isCancelled() +  " > Hello: " + req.getName() + "_" + i;
