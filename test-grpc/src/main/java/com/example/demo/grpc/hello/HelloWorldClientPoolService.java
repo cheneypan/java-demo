@@ -29,18 +29,20 @@ public class HelloWorldClientPoolService {
 //        String[] names = {"cheney", "pan", "drolly", "nero", "abc", "keven", "spoon"};
         String[] names = {"cheney"};
         for (String name : names) {
-            new Thread(() ->
-                    singleStream(channel, name)
-            ).start();
+            new Thread(() ->{
+                Context.CancellableContext withCancellation = Context.current().withCancellation();
+                GreeterGrpc.GreeterBlockingStub blockingStub = GreeterGrpc.newBlockingStub(channel);
+                singleStream(blockingStub, withCancellation, name);
+            }).start();
         }
-        new Thread(() -> {
-            try {
-                Thread.sleep(10 * 1000);
-                helloChannelPool.close();
-            } catch (IOException | InterruptedException e) {
-                logger.error(e.getMessage(), e);
-            }
-        }).start();
+//        new Thread(() -> {
+//            try {
+//                Thread.sleep(10 * 1000);
+//                helloChannelPool.close();
+//            } catch (IOException | InterruptedException e) {
+//                logger.error(e.getMessage(), e);
+//            }
+//        }).start();
 //        for(int i=0; i<100; i++){
 //            int index = i;
 //            new Thread(() ->
@@ -49,11 +51,9 @@ public class HelloWorldClientPoolService {
 //        }
     }
 
-    private void singleStream(ManagedChannel channel, String name) {
+    private void singleStream(GreeterGrpc.GreeterBlockingStub blockingStub, Context.CancellableContext withCancellation, String name) {
 //        logger.info("channel state: {}", channel.getState(true));
         logger.info("name = {}", name);
-        GreeterGrpc.GreeterBlockingStub blockingStub = GreeterGrpc.newBlockingStub(channel);
-        Context.CancellableContext withCancellation = Context.current().withCancellation();
         try {
             withCancellation.run(() -> {
                 while (!Context.current().isCancelled()) {
@@ -80,7 +80,7 @@ public class HelloWorldClientPoolService {
             } catch (InterruptedException e) {
             }
             logger.info("[name={}] reconnect ...", name);
-            this.singleStream(channel, name);
+            this.singleStream(blockingStub, withCancellation, name);
         }
     }
 }
