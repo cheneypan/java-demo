@@ -1,0 +1,21 @@
+server:
+  port: 8080
+
+person:
+  sam:
+    name: sam
+    age: 11
+    desc: magical sam
+  tom:
+    name: tom
+    age: 12
+    desc: magical tom
+
+com:
+  people:
+    - name: sam_p1
+      age: 111
+      desc: magical sam_p1
+    - name: tom_p2
+      age: 112
+      desc: magical tom_p2
